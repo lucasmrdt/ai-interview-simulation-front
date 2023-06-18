@@ -1,25 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useMemo } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { Menu, Error } from "components";
+import { OnBoarding, Chat } from "screens";
+import { useAtom } from "jotai";
+import { hasErrorAtom } from "store";
+import { styled } from "styled-components";
+
+const Wrapper = styled.div``;
 
 function App() {
+  const [hasError] = useAtom(hasErrorAtom);
+
+  const error = useMemo(
+    () => (
+      <Error error="Something went wrong with the server, I should probably paid instead of using a free one 😿" />
+    ),
+    []
+  );
+
+  if (hasError) {
+    return error;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ErrorBoundary fallback={error}>
+      <Wrapper>
+        <OnBoarding />
+        <Menu />
+        <Chat />
+      </Wrapper>
+    </ErrorBoundary>
   );
 }
 
