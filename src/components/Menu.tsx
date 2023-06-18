@@ -128,7 +128,6 @@ export const Menu = () => {
                 onClick={() => {
                   setSelectedInterview(interview);
                   setIsOpened(false);
-                  console.log(interview);
                 }}
               >
                 <span>InterviewType {interview.name}</span>

@@ -1,8 +1,8 @@
 import { InterviewType, MessageType, Role } from "types";
 import socketio, { Socket } from "socket.io-client";
 
-// const API_URL = "https://interview-simulation-iopr.onrender.com";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://interview-simulation-iopr.onrender.com";
+// const API_URL = "http://127.0.0.1:8000";
 
 let sio: Socket;
 
@@ -43,7 +43,7 @@ export const createInterview = async (): Promise<InterviewType> => {
 export const connectSocketIfNeeded = () =>
   new Promise<void>((resolve, reject) => {
     if (sio && sio.connected) {
-      resolve();
+      return resolve();
     }
     sio = socketio(API_URL);
     sio.on("connect", () => {
@@ -54,12 +54,19 @@ export const connectSocketIfNeeded = () =>
     });
   });
 
-export const closeSocket = () => {
-  console.log("Closing socket");
-  if (sio) {
-    sio.close();
-  }
-};
+// export const closeSocketIfNeeded = () =>
+//   new Promise<void>((resolve, reject) => {
+//     if (sio && sio.connected) {
+//       sio.on("disconnect", () => {
+//         resolve();
+//       });
+//       sio.on("error", (error) => {
+//         reject(error);
+//       });
+//     } else {
+//       resolve();
+//     }
+//   });
 
 export const startInterviewIfPossible = async (
   interviewId: number,
@@ -80,9 +87,12 @@ export const subscribeToInterview = async (
   interviewId: number,
   cb: (data: { role: Role; chunk: string; accepted?: boolean }) => any
 ) => {
-  closeSocket();
   await connectSocketIfNeeded();
   sio.on(`interview_chunk_${interviewId}`, cb);
+};
+
+export const unsubscribeToInterview = async (interviewId: number) => {
+  sio.off(`interview_chunk_${interviewId}`);
 };
 
 export const sendMessage = async (

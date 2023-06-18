@@ -13,7 +13,7 @@ import {
   sendMessage,
   createInterview,
   startInterviewIfPossible,
-  closeSocket,
+  unsubscribeToInterview,
 } from "api";
 
 const Wrapper = styled.div`
@@ -121,8 +121,6 @@ export const Chat = () => {
   const [isLoadingInput, setIsLoadingInput] = useState(false);
   const [isLoadingNewSimulation, setIsLoadingNewSimulation] = useState(false);
 
-  const [connected, setConnected] = useState(false);
-
   const hasData = !!localInterview && APIMessages.state === "hasData";
   const showInstructions =
     !hasData &&
@@ -137,24 +135,52 @@ export const Chat = () => {
     localInterview?.status === InterviewStatus.RAN_BY_USER;
   const showInput = showCreateButton;
 
+  const onChunk = useCallback(
+    ({
+      chunk,
+      role,
+      accepted,
+    }: {
+      chunk: string;
+      role: Role;
+      accepted?: boolean;
+    }) => {
+      console.log("onChunk", { chunk, role, accepted });
+      if (typeof accepted === "boolean") {
+        setLocalInterview((prev) => ({
+          ...(prev as InterviewType),
+          status: accepted
+            ? InterviewStatus.ACCEPTED
+            : InterviewStatus.REJECTED,
+        }));
+        setStateSeed((prev) => prev + 1);
+      } else {
+        setLocalMessages((prev: MessageType[]) =>
+          mergeNewChunkWithMessages({ chunk, role }, prev)
+        );
+      }
+    },
+    [setStateSeed]
+  );
+
   const createNewInterview = useCallback(
     async (simulate: boolean) => {
       try {
         if (simulate) {
           setIsLoadingNewSimulation(true);
         }
+        setLocalMessages([]);
         const newInterview = await createInterview();
+        await subscribeToInterview(newInterview.id, onChunk);
+        setSubscribed(true);
         const done = await startInterviewIfPossible(newInterview.id, simulate);
         if (!done) {
-          setConnected(true);
           setLocalInterview({
             ...newInterview,
             status: simulate
               ? InterviewStatus.IN_PROGRESS
               : InterviewStatus.RAN_BY_USER,
           });
-          setLocalMessages([]);
-          setSubscribed(false);
         }
         if (simulate) {
           setIsLoadingNewSimulation(false);
@@ -164,7 +190,7 @@ export const Chat = () => {
         showBoundary(e);
       }
     },
-    [showBoundary]
+    [onChunk, showBoundary]
   );
 
   const onSubmit = useCallback(
@@ -198,7 +224,6 @@ export const Chat = () => {
   useEffect(() => {
     if (selectedInterview) {
       setLocalInterview(selectedInterview);
-      setConnected(false);
       setSubscribed(false);
     }
   }, [selectedInterview]);
@@ -219,35 +244,28 @@ export const Chat = () => {
   // Subscribe to interview
   useEffect(() => {
     if (localInterview && !subscribed) {
-      subscribeToInterview(localInterview.id, ({ chunk, role, accepted }) => {
-        if (typeof accepted === "boolean") {
-          setLocalInterview((prev) => ({
-            ...(prev as InterviewType),
-            status: accepted
-              ? InterviewStatus.ACCEPTED
-              : InterviewStatus.REJECTED,
-          }));
-          setStateSeed((prev) => prev + 1);
-        } else {
-          setLocalMessages((prev: MessageType[]) =>
-            mergeNewChunkWithMessages({ chunk, role }, prev)
-          );
-        }
-      });
+      subscribeToInterview(localInterview.id, onChunk);
       setSubscribed(true);
     }
-  }, [connected, hasData, subscribed, localInterview, setStateSeed]);
+  }, [subscribed, localInterview, onChunk]);
 
   // Close socket when unmounting
-  useEffect(() => () => closeSocket(), []);
+  useEffect(
+    () => () => {
+      if (localInterview) {
+        unsubscribeToInterview(localInterview.id);
+      }
+    },
+    [localInterview]
+  );
 
   // Scroll to bottom at every render
-  // useEffect(() => {
-  //   window.scrollTo({
-  //     top: window.innerHeight,
-  //     behavior: "smooth",
-  //   });
-  // });
+  useEffect(() => {
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: "smooth",
+    });
+  });
 
   const button = useMemo(
     () => (
@@ -343,7 +361,7 @@ export const Chat = () => {
         </>
       ) : (
         <FullPage>
-          <Loader>Connecting to interview</Loader>
+          <Loader>Waiting for interview to start...</Loader>
         </FullPage>
       )}
       {showCreateButton && button}
