@@ -121,8 +121,7 @@ const FifthSection = styled(SecondSection)`
 `;
 
 const SixthSection = styled.div`
-  position: absolute;
-  bottom: 120px;
+  margin-top: 60px;
 `;
 
 export const OnBoarding = () => {
@@ -161,6 +160,7 @@ export const OnBoarding = () => {
               <AnimatedNumber
                 target={interviewResult.data.nbAccepted}
                 onComplete={() => setSectionIdx(4)}
+                duration={1500}
               />
               <span>/{interviewResult.data.nbTotal}</span>
               <FaCheck color={GREEN} fontSize={40} />
