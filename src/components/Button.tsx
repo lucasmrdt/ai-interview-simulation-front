@@ -75,13 +75,18 @@ export const Button = ({
         <Children $color={color} $outline={outline}>
           {children}
         </Children>
-        <IconWrapper>
-          {!isLoading ? (
-            Icon && <Icon fontSize={13} color={outline ? color : DARK_BLUE} />
-          ) : (
-            <BeatLoader size={5} color={outline ? colors[color] : DARK_BLUE} />
-          )}
-        </IconWrapper>
+        {(Icon || isLoading) && (
+          <IconWrapper>
+            {!isLoading ? (
+              Icon && <Icon fontSize={13} color={outline ? color : DARK_BLUE} />
+            ) : (
+              <BeatLoader
+                size={5}
+                color={outline ? colors[color] : DARK_BLUE}
+              />
+            )}
+          </IconWrapper>
+        )}
       </Wrapper>
     </Center>
   );

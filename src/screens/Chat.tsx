@@ -288,9 +288,10 @@ export const Chat = () => {
           isLoading={isButtonLoading}
           outline={isButtonLoading}
           color={isButtonLoading ? "dark-white" : "green"}
+          icon="FaPlay"
         >
           {!isWaitingForInterview
-            ? "Start a new interview simulation"
+            ? "Run a new interview simulation"
             : "running simulation"}
         </Button>
       </ButtonWrapper>
@@ -302,7 +303,7 @@ export const Chat = () => {
       <Input
         onSubmit={onSubmit}
         isLoading={isLoadingInput}
-        placeholder={"or send a message to Lucas Marandat (AI)..."}
+        placeholder={"or engage with Lucas Marandat (AI)..."}
       />
     ),
     [isLoadingInput, onSubmit]
@@ -310,8 +311,9 @@ export const Chat = () => {
   const instructions = useMemo(
     () => (
       <TypingText>
-        You can decide to run a new interview simulation or directly ask
-        questions to Lucas Marandat (AI).
+        Run a new interview simulation or engage directly with Lucas Marandat
+        (AI) by asking questions. Explore previous simulated interviews in the
+        menu. The choice is yours!
       </TypingText>
     ),
     []

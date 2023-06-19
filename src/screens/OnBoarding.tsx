@@ -3,11 +3,11 @@ import { styled } from "styled-components";
 import { RemoveScroll } from "react-remove-scroll";
 import { useAtom } from "jotai";
 import { FaCheck } from "react-icons/fa";
+import { BeatLoader } from "react-spinners";
 
 import { DARK_BLUE, DARK_WHITE, GREEN, LIGHT_WHITE } from "colors";
-import { interviewResultAtom } from "store";
+import { hasOnboardedAtom, interviewResultAtom } from "store";
 import { Button, TypingText } from "components";
-import { BeatLoader } from "react-spinners";
 
 const Wrapper = styled(RemoveScroll)<{ $hasOnBoarded: boolean }>`
   display: flex;
@@ -126,14 +126,15 @@ const SixthSection = styled.div`
 `;
 
 export const OnBoarding = () => {
-  const [hasOnBoarded, setHasOnBoarded] = useState(false);
-  const [sectionIdx, setSectionIdx] = useState(0);
   const [interviewResult] = useAtom(interviewResultAtom);
+  const [hasOnBoarded, setHasOnBoarded] = useAtom(hasOnboardedAtom);
+
+  const [sectionIdx, setSectionIdx] = useState(0);
 
   return (
     <Wrapper $hasOnBoarded={hasOnBoarded} enabled={!hasOnBoarded}>
       <FirstSection onComplete={() => setSectionIdx(1)}>
-        Welcome to the interview simulation between Mistral AI and Lucas
+        Welcome to the interview simulations between Mistral AI and Lucas
         Marandat.
       </FirstSection>
       {sectionIdx >= 1 && (
@@ -141,7 +142,7 @@ export const OnBoarding = () => {
           onComplete={() => setSectionIdx(2)}
           keepCursorOnComplete={sectionIdx <= 3}
         >
-          getting simulation results
+          analyzing the simulation results
         </SecondSection>
       )}
       {sectionIdx === 2 && interviewResult.state === "loading" && (
@@ -169,13 +170,13 @@ export const OnBoarding = () => {
       )}
       {sectionIdx >= 4 && (
         <FifthSection onComplete={() => setSectionIdx(5)} keepCursorOnComplete>
-          All done! You can now either view the interview results or start a new
-          simulation.
+          Voilà! You can now explore the interview results or initiate a new
+          simulation. It's that easy!
         </FifthSection>
       )}
       {sectionIdx >= 5 && (
         <SixthSection>
-          <Button onClick={() => setHasOnBoarded(true)}>Okay!</Button>
+          <Button onClick={() => setHasOnBoarded(true)}>Let's Go!</Button>
         </SixthSection>
       )}
     </Wrapper>

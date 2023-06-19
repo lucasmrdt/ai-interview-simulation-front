@@ -3,13 +3,14 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Menu, Error } from "components";
 import { OnBoarding, Chat } from "screens";
 import { useAtom } from "jotai";
-import { hasErrorAtom } from "store";
+import { hasErrorAtom, hasOnboardedAtom } from "store";
 import { styled } from "styled-components";
 
 const Wrapper = styled.div``;
 
 function App() {
   const [hasError] = useAtom(hasErrorAtom);
+  const [hasOnboarded] = useAtom(hasOnboardedAtom);
 
   const error = useMemo(
     () => (
@@ -27,7 +28,7 @@ function App() {
       <Wrapper>
         <OnBoarding />
         <Menu />
-        <Chat />
+        {hasOnboarded && <Chat />}
       </Wrapper>
     </ErrorBoundary>
   );

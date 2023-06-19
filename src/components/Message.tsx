@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
+import { forwardRef } from "react";
 
 import { DARK_WHITE, LIGHT_BLUE } from "colors";
-import { forwardRef } from "react";
 
 const Username = styled.h3`
   display: flex;

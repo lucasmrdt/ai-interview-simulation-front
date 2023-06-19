@@ -8,6 +8,8 @@ const NO_INTERVIEW_SELECTED_ERROR = new Error("No interview selected");
 
 export const stateSeedAtom = atom(0);
 
+export const hasOnboardedAtom = atom(false);
+
 export const interviewListAtom = loadable(
   atom(async (get) => {
     get(stateSeedAtom);
