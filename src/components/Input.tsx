@@ -85,12 +85,18 @@ export const Input = ({
         disabled={isLoading}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        style={{ cursor: isLoading ? "wait" : "text" }}
       />
       <IconWrapper>
         {isLoading ? (
           <BeatLoader size={6} color={LIGHT_WHITE} />
         ) : (
-          <FaPaperPlane size={16} color={LIGHT_WHITE} />
+          <FaPaperPlane
+            size={16}
+            color={LIGHT_WHITE}
+            onClick={() => onSubmit && onSubmit(value)}
+            style={{ cursor: "pointer" }}
+          />
         )}
       </IconWrapper>
     </Wrapper>

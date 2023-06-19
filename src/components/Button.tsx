@@ -41,7 +41,7 @@ const Children = styled.span<{
 
 const IconWrapper = styled.span`
   display: flex;
-  margin-right: 10px;
+  margin-left: 10px;
 `;
 
 interface Props {
@@ -65,19 +65,23 @@ export const Button = ({
 
   return (
     <Center>
-      <Wrapper $color={color} $outline={outline} onClick={onClick}>
+      <Wrapper
+        $color={color}
+        $outline={outline}
+        onClick={onClick}
+        disabled={isLoading}
+        style={{ cursor: !isLoading ? "pointer" : "wait" }}
+      >
         <Children $color={color} $outline={outline}>
           {children}
         </Children>
-        {!isLoading ? (
-          Icon && (
-            <IconWrapper>
-              <Icon fontSize={13} color={outline ? color : DARK_BLUE} />
-            </IconWrapper>
-          )
-        ) : (
-          <BeatLoader size={5} color={outline ? color : DARK_BLUE} />
-        )}
+        <IconWrapper>
+          {!isLoading ? (
+            Icon && <Icon fontSize={13} color={outline ? color : DARK_BLUE} />
+          ) : (
+            <BeatLoader size={5} color={outline ? colors[color] : DARK_BLUE} />
+          )}
+        </IconWrapper>
       </Wrapper>
     </Center>
   );

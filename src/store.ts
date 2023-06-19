@@ -4,6 +4,8 @@ import { loadable } from "jotai/utils";
 import { fetchInterviews, fetchMessages } from "api";
 import { InterviewStatus, InterviewType } from "types";
 
+const NO_INTERVIEW_SELECTED_ERROR = new Error("No interview selected");
+
 export const stateSeedAtom = atom(0);
 
 export const interviewListAtom = loadable(
@@ -13,8 +15,9 @@ export const interviewListAtom = loadable(
     return interviewList
       .filter(
         (interview) =>
-          interview.status !== InterviewStatus.ERROR &&
-          interview.status !== InterviewStatus.IN_PROGRESS
+          interview.status === InterviewStatus.ACCEPTED ||
+          interview.status === InterviewStatus.REJECTED ||
+          interview.status === InterviewStatus.RAN_BY_USER
       )
       .sort(
         (a, b) =>
@@ -49,10 +52,9 @@ export const selectedInterviewAtom = atom<InterviewType | null>(null);
 
 export const APIMessagesAtom = loadable(
   atom(async (get) => {
-    // get(stateSeedAtom);
     const selectedInterview = get(selectedInterviewAtom);
     if (!selectedInterview) {
-      return [];
+      throw NO_INTERVIEW_SELECTED_ERROR;
     }
     const messages = await fetchMessages(selectedInterview.id);
     return messages.sort(
@@ -65,5 +67,9 @@ export const APIMessagesAtom = loadable(
 export const hasErrorAtom = atom((get) => {
   const interviewList = get(interviewListAtom);
   const messages = get(APIMessagesAtom);
-  return interviewList.state === "hasError" || messages.state === "hasError";
+  return (
+    interviewList.state === "hasError" ||
+    (messages.state === "hasError" &&
+      messages.error !== NO_INTERVIEW_SELECTED_ERROR)
+  );
 });

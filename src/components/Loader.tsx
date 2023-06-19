@@ -10,6 +10,7 @@ const Wrapper = styled.div`
   height: 100%;
   justify-content: center;
   align-items: center;
+  color: ${DARK_WHITE};
 
   :last-child {
     margin-left: 10px;

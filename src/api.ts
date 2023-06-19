@@ -41,7 +41,7 @@ export const createInterview = async (): Promise<InterviewType> => {
 };
 
 export const connectSocketIfNeeded = () =>
-  new Promise<void>((resolve, reject) => {
+  new Promise<void>(async (resolve, reject) => {
     if (sio && sio.connected) {
       return resolve();
     }

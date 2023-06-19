@@ -34,7 +34,7 @@ export const TypingText = ({
       ) : (
         <Typed
           strings={[children]}
-          typeSpeed={30}
+          typeSpeed={20}
           onComplete={() => {
             setHasCompleted(true);
             onComplete && onComplete();

@@ -11,6 +11,8 @@ import {
   interviewResultAtom,
   selectedInterviewAtom,
 } from "store";
+import { Loader } from "./Loader";
+import { BeatLoader } from "react-spinners";
 
 const HEADER_HEIGHT = 70;
 
@@ -25,6 +27,7 @@ const Wrapper = styled(RemoveScroll)<{ $open: boolean }>`
   right: 0;
   background: ${LIGHT_BLUE};
   height: ${(props) => (props.$open ? "100vh" : HEADER_HEIGHT + "px")};
+  overflow: hidden;
   transition: height 0.3s ease-in-out;
 `;
 
@@ -51,8 +54,8 @@ const MenuButton = styled.button`
 
 const MenuList = styled.ul`
   display: flex;
-  flex-direction: column;
   overflow: scroll;
+  flex-direction: column;
 `;
 
 const InterviewButton = styled.button<{ $isAccepted: boolean }>`
@@ -110,40 +113,51 @@ export const Menu = () => {
               <FaBars fontSize={24} color={LIGHT_WHITE} />
             )}
           </MenuButton>
-          {interviewResult.state === "hasData" && (
-            <Score>
-              <span>
-                {interviewResult.data.nbAccepted}/{interviewResult.data.nbTotal}
-              </span>
-              <FaCheck />
-            </Score>
-          )}
+          <Score>
+            {interviewResult.state === "hasData" && (
+              <>
+                <span>
+                  {interviewResult.data.nbAccepted}/
+                  {interviewResult.data.nbTotal}
+                </span>
+                <FaCheck />
+              </>
+            )}
+            {interviewResult.state === "loading" && (
+              <BeatLoader size={6} color={LIGHT_WHITE} />
+            )}
+          </Score>
         </Header>
         <MenuList>
           {interviewList.state === "hasData" &&
-            interviewList.data.map((interview: InterviewType) => (
-              <InterviewButton
-                key={interview.id}
-                $isAccepted={interview.status === InterviewStatus.ACCEPTED}
-                onClick={() => {
-                  setSelectedInterview(interview);
-                  setIsOpened(false);
-                }}
-              >
-                <span>InterviewType {interview.name}</span>
-                <span>
-                  {interview.status === InterviewStatus.ACCEPTED && (
-                    <FaCheck color={GREEN} />
-                  )}
-                  {interview.status === InterviewStatus.REJECTED && (
-                    <FaTimes color={RED} />
-                  )}
-                  {interview.status === InterviewStatus.RAN_BY_USER && (
-                    <FaLaugh color={LIGHT_WHITE} />
-                  )}
-                </span>
-              </InterviewButton>
-            ))}
+            [...interviewList.data]
+              .reverse()
+              .map((interview: InterviewType) => (
+                <InterviewButton
+                  key={interview.id}
+                  $isAccepted={interview.status === InterviewStatus.ACCEPTED}
+                  onClick={() => {
+                    setSelectedInterview(interview);
+                    setIsOpened(false);
+                  }}
+                >
+                  <span>InterviewType {interview.name}</span>
+                  <span>
+                    {interview.status === InterviewStatus.ACCEPTED && (
+                      <FaCheck color={GREEN} />
+                    )}
+                    {interview.status === InterviewStatus.REJECTED && (
+                      <FaTimes color={RED} />
+                    )}
+                    {interview.status === InterviewStatus.RAN_BY_USER && (
+                      <FaLaugh color={LIGHT_WHITE} />
+                    )}
+                  </span>
+                </InterviewButton>
+              ))}
+          {interviewList.state === "loading" && (
+            <Loader>loading interviews</Loader>
+          )}
         </MenuList>
       </Wrapper>
     </>

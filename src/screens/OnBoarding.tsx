@@ -4,9 +4,10 @@ import { RemoveScroll } from "react-remove-scroll";
 import { useAtom } from "jotai";
 import { FaCheck } from "react-icons/fa";
 
-import { DARK_BLUE, DARK_WHITE, GREEN } from "colors";
+import { DARK_BLUE, DARK_WHITE, GREEN, LIGHT_WHITE } from "colors";
 import { interviewResultAtom } from "store";
 import { Button, TypingText } from "components";
+import { BeatLoader } from "react-spinners";
 
 const Wrapper = styled(RemoveScroll)<{ $hasOnBoarded: boolean }>`
   display: flex;
@@ -58,10 +59,12 @@ const AnimatedNumber = ({
   target,
   className,
   onComplete,
+  duration = 2000,
 }: {
   target: number;
   className?: string;
   onComplete?: () => void;
+  duration?: number;
 }) => {
   const [value, setValue] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -77,11 +80,11 @@ const AnimatedNumber = ({
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setValue((prev) => prev + 1);
-    }, 300);
+    }, Math.round(duration / target));
     return () => {
       clearInterval(intervalRef.current!);
     };
-  }, []);
+  }, [duration, target]);
 
   return <span className={className}>{value}</span>;
 };
@@ -119,7 +122,7 @@ const FifthSection = styled(SecondSection)`
 
 const SixthSection = styled.div`
   position: absolute;
-  bottom: 30px;
+  bottom: 120px;
 `;
 
 export const OnBoarding = () => {
@@ -140,6 +143,11 @@ export const OnBoarding = () => {
         >
           getting simulation results
         </SecondSection>
+      )}
+      {sectionIdx === 2 && interviewResult.state === "loading" && (
+        <ThirdAndForthSection>
+          <BeatLoader size={6} color={LIGHT_WHITE} />
+        </ThirdAndForthSection>
       )}
       {sectionIdx >= 2 && interviewResult.state === "hasData" && (
         <ThirdAndForthSection>

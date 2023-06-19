@@ -20,6 +20,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100vw;
+  padding-bottom: 80px;
 `;
 
 const FullPage = styled(Wrapper)`
@@ -46,33 +47,32 @@ const Title = styled.h1`
   }
 `;
 
-const InputWrapper = styled.div`
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-`;
-
 const StatusWrapper = styled.div`
   font-size: 20px;
   font-weight: 700;
-  margin-top: 50px;
+  margin-top: 30px;
   color: ${DARK_WHITE};
   width: 100%;
   text-align: center;
   padding: 0 20px;
-  padding-bottom: 40px;
+  padding-bottom: 80px;
 
   & > svg {
     margin-left: 10px;
   }
 `;
 
-const ButtonWrapper = styled.div`
+const FixedWrapper = styled.div`
   position: fixed;
-  bottom: 80px;
+  bottom: 0;
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
+`;
+
+const ButtonWrapper = styled.div`
+  margin-bottom: 10px;
 `;
 
 const mergeNewChunkWithMessages = (
@@ -121,19 +121,34 @@ export const Chat = () => {
   const [isLoadingInput, setIsLoadingInput] = useState(false);
   const [isLoadingNewSimulation, setIsLoadingNewSimulation] = useState(false);
 
-  const hasData = !!localInterview && APIMessages.state === "hasData";
+  const hasData = localInterview || APIMessages.state === "hasData";
   const showInstructions =
     !hasData &&
+    !isLoadingInput &&
     !isLoadingNewSimulation &&
     !selectedInterview &&
-    APIMessages.state !== "loading";
+    !localInterview;
   const showCreateButton =
-    showInstructions ||
-    localInterview?.status === InterviewStatus.ACCEPTED ||
-    localInterview?.status === InterviewStatus.REJECTED ||
-    localInterview?.status === InterviewStatus.IN_PROGRESS ||
-    localInterview?.status === InterviewStatus.RAN_BY_USER;
-  const showInput = showCreateButton;
+    (showInstructions ||
+      isLoadingNewSimulation ||
+      localInterview?.status === InterviewStatus.ACCEPTED ||
+      localInterview?.status === InterviewStatus.REJECTED ||
+      localInterview?.status === InterviewStatus.RAN_BY_USER ||
+      localInterview?.status === InterviewStatus.IN_PROGRESS) &&
+    !isLoadingInput;
+  const showInput =
+    (showInstructions ||
+      isLoadingInput ||
+      localInterview?.status === InterviewStatus.ACCEPTED ||
+      localInterview?.status === InterviewStatus.REJECTED ||
+      localInterview?.status === InterviewStatus.RAN_BY_USER ||
+      (localInterview?.status === InterviewStatus.IN_PROGRESS &&
+        isLoadingInput)) &&
+    !isLoadingNewSimulation;
+  const isWaitingForInterview =
+    localInterview?.status === InterviewStatus.IN_PROGRESS;
+  const isLoadingInterviewMessages = APIMessages.state === "loading";
+  const isButtonLoading = isWaitingForInterview || isLoadingNewSimulation;
 
   const onChunk = useCallback(
     ({
@@ -145,7 +160,6 @@ export const Chat = () => {
       role: Role;
       accepted?: boolean;
     }) => {
-      console.log("onChunk", { chunk, role, accepted });
       if (typeof accepted === "boolean") {
         setLocalInterview((prev) => ({
           ...(prev as InterviewType),
@@ -166,22 +180,21 @@ export const Chat = () => {
   const createNewInterview = useCallback(
     async (simulate: boolean) => {
       try {
+        setLocalInterview(undefined);
+        setLocalMessages([]);
         if (simulate) {
           setIsLoadingNewSimulation(true);
         }
-        setLocalMessages([]);
         const newInterview = await createInterview();
         await subscribeToInterview(newInterview.id, onChunk);
         setSubscribed(true);
-        const done = await startInterviewIfPossible(newInterview.id, simulate);
-        if (!done) {
-          setLocalInterview({
-            ...newInterview,
-            status: simulate
-              ? InterviewStatus.IN_PROGRESS
-              : InterviewStatus.RAN_BY_USER,
-          });
-        }
+        setLocalInterview({
+          ...newInterview,
+          status: simulate
+            ? InterviewStatus.IN_PROGRESS
+            : InterviewStatus.RAN_BY_USER,
+        });
+        await startInterviewIfPossible(newInterview.id, simulate);
         if (simulate) {
           setIsLoadingNewSimulation(false);
         }
@@ -269,32 +282,28 @@ export const Chat = () => {
 
   const button = useMemo(
     () => (
-      <>
-        <div style={{ minHeight: 90 }} />
-        <ButtonWrapper>
-          <Button
-            onClick={() => createNewInterview(true)}
-            isLoading={isLoadingNewSimulation}
-          >
-            Start a new interview simulation
-          </Button>
-        </ButtonWrapper>
-      </>
+      <ButtonWrapper>
+        <Button
+          onClick={() => createNewInterview(true)}
+          isLoading={isButtonLoading}
+          outline={isButtonLoading}
+          color={isButtonLoading ? "dark-white" : "green"}
+        >
+          {!isWaitingForInterview
+            ? "Start a new interview simulation"
+            : "running simulation"}
+        </Button>
+      </ButtonWrapper>
     ),
-    [isLoadingNewSimulation, createNewInterview]
+    [isButtonLoading, isWaitingForInterview, createNewInterview]
   );
   const input = useMemo(
     () => (
-      <>
-        <div style={{ minHeight: 70 }} />
-        <InputWrapper>
-          <Input
-            onSubmit={onSubmit}
-            isLoading={isLoadingInput}
-            placeholder={"or send a message to Lucas Marandat (AI)..."}
-          />
-        </InputWrapper>
-      </>
+      <Input
+        onSubmit={onSubmit}
+        isLoading={isLoadingInput}
+        placeholder={"or send a message to Lucas Marandat (AI)..."}
+      />
     ),
     [isLoadingInput, onSubmit]
   );
@@ -308,64 +317,76 @@ export const Chat = () => {
     []
   );
 
-  if (!hasData) {
-    return (
-      <FullPage>
-        {showInstructions ? instructions : <Loader>loading interview</Loader>}
-        {button}
-        {input}
-      </FullPage>
-    );
-  }
+  const conversation = useMemo(
+    () =>
+      localInterview && (
+        <Wrapper>
+          <Title>
+            Interview {localInterview.name}
+            {localInterview.status === InterviewStatus.ACCEPTED && (
+              <FaCheck color={GREEN} />
+            )}
+            {localInterview.status === InterviewStatus.REJECTED && (
+              <FaTimes color={RED} />
+            )}
+            {localInterview.status === InterviewStatus.RAN_BY_USER && (
+              <FaLaugh color={LIGHT_WHITE} />
+            )}
+          </Title>
+          {localMessages.length > 0 && !isLoadingInterviewMessages ? (
+            <>
+              {localMessages.map(({ message, role, id }, i) => (
+                <Message
+                  content={message}
+                  username={
+                    role === Role.APPLICANT
+                      ? "Lucas Marandat (AI)"
+                      : "Mistral AI (AI)"
+                  }
+                  right={role === Role.APPLICANT}
+                  light={role === Role.APPLICANT}
+                  key={id}
+                />
+              ))}
+              {localInterview.status === InterviewStatus.ACCEPTED && (
+                <StatusWrapper>
+                  Lucas Marandat (AI) has been accepted by Mistral AI (AI)
+                  <FaCheck color={GREEN} />
+                </StatusWrapper>
+              )}
+              {localInterview.status === InterviewStatus.REJECTED && (
+                <StatusWrapper>
+                  <FaTimes color={RED} />
+                </StatusWrapper>
+              )}
+            </>
+          ) : (
+            <FullPage>
+              <Loader>
+                {isLoadingInterviewMessages
+                  ? "loading interview messages"
+                  : "waiting for interview to start"}
+              </Loader>
+            </FullPage>
+          )}
+        </Wrapper>
+      ),
+    [isLoadingInterviewMessages, localInterview, localMessages]
+  );
 
   return (
-    <Wrapper>
-      <Title>
-        Interview {localInterview.name}
-        {localInterview.status === InterviewStatus.ACCEPTED && (
-          <FaCheck color={GREEN} />
-        )}
-        {localInterview.status === InterviewStatus.REJECTED && (
-          <FaTimes color={RED} />
-        )}
-        {localInterview.status === InterviewStatus.RAN_BY_USER && (
-          <FaLaugh color={LIGHT_WHITE} />
-        )}
-      </Title>
-      {localMessages.length > 0 ? (
-        <>
-          {localMessages.map(({ message, role, id }, i) => (
-            <Message
-              content={message}
-              username={
-                role === Role.APPLICANT
-                  ? "Lucas Marandat (AI)"
-                  : "Mistral AI (AI)"
-              }
-              right={role === Role.APPLICANT}
-              light={role === Role.APPLICANT}
-              key={id}
-            />
-          ))}
-          {localInterview.status === InterviewStatus.ACCEPTED && (
-            <StatusWrapper>
-              Lucas Marandat (AI) has been accepted by Mistral AI (AI)
-              <FaCheck color={GREEN} />
-            </StatusWrapper>
-          )}
-          {localInterview.status === InterviewStatus.REJECTED && (
-            <StatusWrapper>
-              <FaTimes color={RED} />
-            </StatusWrapper>
-          )}
-        </>
+    <>
+      {hasData ? (
+        conversation
       ) : (
         <FullPage>
-          <Loader>Waiting for interview to start...</Loader>
+          {showInstructions ? instructions : <Loader>loading interview</Loader>}
         </FullPage>
       )}
-      {showCreateButton && button}
-      {showInput && input}
-    </Wrapper>
+      <FixedWrapper>
+        {showCreateButton && button}
+        {showInput && input}
+      </FixedWrapper>
+    </>
   );
 };
