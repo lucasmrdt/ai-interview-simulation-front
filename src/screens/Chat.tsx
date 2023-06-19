@@ -1,12 +1,12 @@
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FaCheck, FaLaugh, FaTimes } from "react-icons/fa";
+import { FaCheck, FaExclamation, FaLaugh, FaTimes } from "react-icons/fa";
 import { styled } from "styled-components";
 import { useErrorBoundary } from "react-error-boundary";
 
 import { InterviewStatus, InterviewType, MessageType, Role } from "types";
 import { APIMessagesAtom, selectedInterviewAtom, stateSeedAtom } from "store";
-import { DARK_WHITE, GREEN, LIGHT_WHITE, RED } from "colors";
+import { DARK_WHITE, GREEN, LIGHT_WHITE, ORANGE, RED } from "colors";
 import { Message, Input, Button, TypingText, Loader } from "components";
 import {
   subscribeToInterview,
@@ -20,7 +20,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100vw;
-  padding-bottom: 80px;
+  padding-bottom: 130px;
 `;
 
 const FullPage = styled(Wrapper)`
@@ -44,10 +44,11 @@ const Title = styled.h1`
 
   & > svg {
     margin-left: 10px;
+    transform: translateY(5px);
   }
 `;
 
-const StatusWrapper = styled.div`
+const StatusWrapper = styled.p`
   font-size: 20px;
   font-weight: 700;
   margin-top: 30px;
@@ -55,10 +56,11 @@ const StatusWrapper = styled.div`
   width: 100%;
   text-align: center;
   padding: 0 20px;
-  padding-bottom: 80px;
+  padding-bottom: 30px;
 
   & > svg {
     margin-left: 10px;
+    transform: translateY(3px);
   }
 `;
 
@@ -133,6 +135,7 @@ export const Chat = () => {
       isLoadingNewSimulation ||
       localInterview?.status === InterviewStatus.ACCEPTED ||
       localInterview?.status === InterviewStatus.REJECTED ||
+      localInterview?.status === InterviewStatus.ERROR ||
       localInterview?.status === InterviewStatus.RAN_BY_USER ||
       localInterview?.status === InterviewStatus.IN_PROGRESS) &&
     !isLoadingInput;
@@ -141,6 +144,7 @@ export const Chat = () => {
       isLoadingInput ||
       localInterview?.status === InterviewStatus.ACCEPTED ||
       localInterview?.status === InterviewStatus.REJECTED ||
+      localInterview?.status === InterviewStatus.ERROR ||
       localInterview?.status === InterviewStatus.RAN_BY_USER ||
       (localInterview?.status === InterviewStatus.IN_PROGRESS &&
         isLoadingInput)) &&
@@ -154,24 +158,21 @@ export const Chat = () => {
     ({
       chunk,
       role,
-      accepted,
+      status,
     }: {
       chunk: string;
       role: Role;
-      accepted?: boolean;
+      status?: InterviewStatus;
     }) => {
-      if (typeof accepted === "boolean") {
+      setLocalMessages((prev: MessageType[]) =>
+        mergeNewChunkWithMessages({ chunk, role }, prev)
+      );
+      if (typeof status === "string") {
         setLocalInterview((prev) => ({
           ...(prev as InterviewType),
-          status: accepted
-            ? InterviewStatus.ACCEPTED
-            : InterviewStatus.REJECTED,
+          status,
         }));
         setStateSeed((prev) => prev + 1);
-      } else {
-        setLocalMessages((prev: MessageType[]) =>
-          mergeNewChunkWithMessages({ chunk, role }, prev)
-        );
       }
     },
     [setStateSeed]
@@ -185,7 +186,9 @@ export const Chat = () => {
         if (simulate) {
           setIsLoadingNewSimulation(true);
         }
+        console.log("creating a new interview");
         const newInterview = await createInterview();
+        console.log("subscribing to interview", newInterview.id);
         await subscribeToInterview(newInterview.id, onChunk);
         setSubscribed(true);
         setLocalInterview({
@@ -194,7 +197,9 @@ export const Chat = () => {
             ? InterviewStatus.IN_PROGRESS
             : InterviewStatus.RAN_BY_USER,
         });
+        console.log("starting interview", newInterview.id);
         await startInterviewIfPossible(newInterview.id, simulate);
+        console.log("started interview", newInterview.id);
         if (simulate) {
           setIsLoadingNewSimulation(false);
         }
@@ -275,7 +280,7 @@ export const Chat = () => {
   // Scroll to bottom at every render
   useEffect(() => {
     window.scrollTo({
-      top: window.innerHeight,
+      top: window.document.body.scrollHeight,
       behavior: "smooth",
     });
   });
@@ -286,7 +291,7 @@ export const Chat = () => {
         <Button
           onClick={() => createNewInterview(true)}
           isLoading={isButtonLoading}
-          outline={isButtonLoading}
+          // outline={isButtonLoading}
           color={isButtonLoading ? "dark-white" : "green"}
           icon="FaPlay"
         >
@@ -334,6 +339,9 @@ export const Chat = () => {
             {localInterview.status === InterviewStatus.RAN_BY_USER && (
               <FaLaugh color={LIGHT_WHITE} />
             )}
+            {localInterview.status === InterviewStatus.ERROR && (
+              <FaExclamation color={ORANGE} />
+            )}
           </Title>
           {localMessages.length > 0 && !isLoadingInterviewMessages ? (
             <>
@@ -358,7 +366,14 @@ export const Chat = () => {
               )}
               {localInterview.status === InterviewStatus.REJECTED && (
                 <StatusWrapper>
+                  Lucas Marandat (AI) has been rejected by Mistral AI (AI)
                   <FaTimes color={RED} />
+                </StatusWrapper>
+              )}
+              {localInterview.status === InterviewStatus.ERROR && (
+                <StatusWrapper>
+                  Mistral AI (AI) has not given a decision
+                  <FaExclamation color={ORANGE} />
                 </StatusWrapper>
               )}
             </>

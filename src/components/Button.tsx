@@ -25,6 +25,7 @@ const Wrapper = styled.button<{
   border-radius: 10px;
   border: ${(props) =>
     props.$outline ? `2px solid ${colors[props.$color]}` : "none"};
+  box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
 `;
 
 const Children = styled.span<{

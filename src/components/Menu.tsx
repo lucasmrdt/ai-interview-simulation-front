@@ -1,10 +1,23 @@
 import { useCallback, useState } from "react";
 import { styled } from "styled-components";
 import { useAtom, useSetAtom } from "jotai";
-import { FaBars, FaCheck, FaLaugh, FaTimes } from "react-icons/fa";
+import {
+  FaBars,
+  FaCheck,
+  FaExclamation,
+  FaLaugh,
+  FaTimes,
+} from "react-icons/fa";
 import { RemoveScroll } from "react-remove-scroll";
 
-import { DARK_WHITE, GREEN, LIGHT_BLUE, LIGHT_WHITE, RED } from "colors";
+import {
+  DARK_WHITE,
+  GREEN,
+  LIGHT_BLUE,
+  LIGHT_WHITE,
+  ORANGE,
+  RED,
+} from "colors";
 import { InterviewType, InterviewStatus } from "types";
 import {
   interviewListAtom,
@@ -151,6 +164,9 @@ export const Menu = () => {
                     )}
                     {interview.status === InterviewStatus.RAN_BY_USER && (
                       <FaLaugh color={LIGHT_WHITE} />
+                    )}
+                    {interview.status === InterviewStatus.ERROR && (
+                      <FaExclamation color={ORANGE} />
                     )}
                   </span>
                 </InterviewButton>

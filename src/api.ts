@@ -1,4 +1,4 @@
-import { InterviewType, MessageType, Role } from "types";
+import { InterviewStatus, InterviewType, MessageType, Role } from "types";
 import socketio, { Socket } from "socket.io-client";
 
 const API_URL = "https://interview-simulation-iopr.onrender.com";
@@ -85,7 +85,7 @@ export const startInterviewIfPossible = async (
 
 export const subscribeToInterview = async (
   interviewId: number,
-  cb: (data: { role: Role; chunk: string; accepted?: boolean }) => any
+  cb: (data: { role: Role; chunk: string; status?: InterviewStatus }) => any
 ) => {
   await connectSocketIfNeeded();
   sio.on(`interview_chunk_${interviewId}`, cb);

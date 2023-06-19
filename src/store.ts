@@ -19,6 +19,7 @@ export const interviewListAtom = loadable(
         (interview) =>
           interview.status === InterviewStatus.ACCEPTED ||
           interview.status === InterviewStatus.REJECTED ||
+          interview.status === InterviewStatus.ERROR ||
           interview.status === InterviewStatus.RAN_BY_USER
       )
       .sort(
@@ -39,7 +40,9 @@ export const interviewResultAtom = atom((get) => {
   );
   const nbTotal = interviewList.data.filter(
     ({ status }) =>
-      status === InterviewStatus.ACCEPTED || status === InterviewStatus.REJECTED
+      status === InterviewStatus.ACCEPTED ||
+      status === InterviewStatus.REJECTED ||
+      status === InterviewStatus.ERROR
   ).length;
   return {
     state: interviewList.state,
