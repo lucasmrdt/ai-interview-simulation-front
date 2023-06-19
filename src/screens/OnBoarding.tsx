@@ -86,7 +86,7 @@ const AnimatedNumber = ({
     };
   }, [duration, target]);
 
-  return <span className={className}>{value}</span>;
+  return <span className={className}>{Math.min(target, value)}</span>;
 };
 
 const FirstSection = styled(TypingText)`
