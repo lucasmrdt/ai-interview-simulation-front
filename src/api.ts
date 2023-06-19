@@ -2,7 +2,7 @@ import { InterviewStatus, InterviewType, MessageType, Role } from "types";
 import socketio, { Socket } from "socket.io-client";
 
 const API_URL = "https://interview-simulation-iopr.onrender.com";
-// const API_URL = "http://127.0.0.1:8000";
+// const API_URL = "http://localhost:8000";
 
 let sio: Socket;
 
