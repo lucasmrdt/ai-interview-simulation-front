@@ -30,6 +30,7 @@ const FullPage = styled(Wrapper)`
   color: ${DARK_WHITE};
   position: absolute;
   top: 0;
+  padding-top: 70px;
 `;
 
 const Title = styled.h1`

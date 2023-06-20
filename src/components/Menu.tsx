@@ -154,7 +154,7 @@ export const Menu = () => {
                     setIsOpened(false);
                   }}
                 >
-                  <span>InterviewType {interview.name}</span>
+                  <span>Interview {interview.name}</span>
                   <span>
                     {interview.status === InterviewStatus.ACCEPTED && (
                       <FaCheck color={GREEN} />

@@ -7,6 +7,7 @@ import { colors, DARK_BLUE } from "colors";
 const Center = styled.div`
   display: flex;
   width: 100%;
+  padding: 0 10px;
   justify-content: center;
   align-items: center;
 `;
