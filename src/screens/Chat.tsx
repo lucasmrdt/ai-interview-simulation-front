@@ -75,7 +75,7 @@ const FixedWrapper = styled.div`
 `;
 
 const ButtonWrapper = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 `;
 
 const mergeNewChunkWithMessages = (
@@ -187,9 +187,7 @@ export const Chat = () => {
         if (simulate) {
           setIsLoadingNewSimulation(true);
         }
-        console.log("creating a new interview");
         const newInterview = await createInterview();
-        console.log("subscribing to interview", newInterview.id);
         await subscribeToInterview(newInterview.id, onChunk);
         setSubscribed(true);
         setLocalInterview({
@@ -198,9 +196,7 @@ export const Chat = () => {
             ? InterviewStatus.IN_PROGRESS
             : InterviewStatus.RAN_BY_USER,
         });
-        console.log("starting interview", newInterview.id);
         await startInterviewIfPossible(newInterview.id, simulate);
-        console.log("started interview", newInterview.id);
         if (simulate) {
           setIsLoadingNewSimulation(false);
         }
@@ -286,6 +282,14 @@ export const Chat = () => {
     });
   });
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
   const button = useMemo(
     () => (
       <ButtonWrapper>
@@ -293,7 +297,7 @@ export const Chat = () => {
           onClick={() => createNewInterview(true)}
           isLoading={isButtonLoading}
           // outline={isButtonLoading}
-          color={isButtonLoading ? "dark-white" : "green"}
+          color={isButtonLoading ? "dark-white" : "gradient"}
           icon="FaPlay"
         >
           {!isWaitingForInterview

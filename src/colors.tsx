@@ -14,4 +14,5 @@ export const colors = {
   green: GREEN,
   orange: ORANGE,
   red: RED,
+  gradient: "linear-gradient(180deg, #feda04, #fc6100)",
 } as const;

@@ -176,7 +176,9 @@ export const OnBoarding = () => {
       )}
       {sectionIdx >= 5 && (
         <SixthSection>
-          <Button onClick={() => setHasOnBoarded(true)}>Let's Go!</Button>
+          <Button color="gradient" onClick={() => setHasOnBoarded(true)}>
+            Let's Go!
+          </Button>
         </SixthSection>
       )}
     </Wrapper>
