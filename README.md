@@ -1,4 +1,18 @@
-# AI-Interview-front
+# ai-interview-front
+
+![](assets/icon.png)
+
+## Usage
+
+1. Install dependencies
+```bash
+npm install
+```
+
+2. Run the app
+```bash
+npm start
+```
 
 ## Libraries
 - https://github.com/ssbeefeater/react-typed
